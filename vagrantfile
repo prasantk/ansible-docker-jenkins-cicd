@@ -1,0 +1,110 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+# Increase numnodes if you want more than 2 nodes
+# numnodes = 1
+
+# VirtualBox settings
+# Increase vmmemory if you want more than 1024mb memory in the vm's
+vmmemory = 1024
+# Increase numcpu if you want more cpu's per vm
+numcpu = 1
+
+# instances = []
+
+# (1..numnodes).each do |n| 
+#   instances.push({:name => "jenkins-node#{n}", :ip => "10.0.15.4#{n}"})
+# end
+ansible_controller_ip = "10.0.15.30"
+jenkins_ci_ip = "10.0.15.40"
+# jenkins_ci_test_ip = "10.0.15.41"
+
+Vagrant.configure("2") do |config|
+    # The most common configuration options are documented and commented below.
+    # For a complete reference, please see the online documentation at
+    # https://docs.vagrantup.com.
+  
+    # config.vm.provider "virtualbox" do |v|
+    #     v.memory = vmmemory
+    #     v.cpus = numcpu
+    # end
+  
+    if Vagrant.has_plugin?("vagrant-cachier")
+      config.cache.scope = :box
+    end
+
+    # plugin conflict
+    if Vagrant.has_plugin?("vagrant-vbguest") then
+        config.vbguest.auto_update = false
+    end
+
+    # create the ansible-controller configuration
+    config.vm.define "ansible-controller" do |ansible_controller_config|
+       
+        ansible_controller_config.vm.provider "virtualbox" do |v|
+            v.memory = vmmemory
+            v.cpus = numcpu
+        end
+        # ansible_controller_config.vm.box = "ubuntu/xenial64"
+        ansible_controller_config.vm.box = "geerlingguy/ubuntu1604"
+        ansible_controller_config.ssh.insert_key = false
+        # ansible_controller_config.vm.synced_folder ".", "/vagrant", disabled: true
+
+        ansible_controller_config.vm.synced_folder "./", "/vagrant", id: "vagrant-root", owner: "vagrant", group: "vagrant", mount_options: ["dmode=775,fmode=664"]
+
+        ansible_controller_config.vm.hostname = "ansible-controller"
+        ansible_controller_config.vm.network :private_network, ip: "#{ansible_controller_ip}"
+        ansible_controller_config.cache.synced_folder_opts = {
+            owner: "_apt",
+            group: "vagrant"
+        }
+        ansible_controller_config.vm.provision :shell, path: "scripts/bootstrap-ctrl.sh"
+    end
+  
+    # create the ci configuration
+    config.vm.define "jenkins-ci" do |jenkins_ci_config|
+        jenkins_ci_config.vm.provider "virtualbox" do |v|
+            v.memory = vmmemory * 5
+            v.cpus = numcpu
+        end
+        jenkins_ci_config.vm.box = "geerlingguy/ubuntu1604"
+        jenkins_ci_config.ssh.insert_key = false
+        # jenkins_ci_config.vm.synced_folder ".", "/vagrant", disabled: true
+        jenkins_ci_config.vm.hostname = "jenkins-ci"
+        jenkins_ci_config.vm.network :private_network, ip: "#{jenkins_ci_ip}"
+        # jenkins_ci_config.vm.provision :shell, path: "bootstrap.sh"
+        jenkins_ci_config.cache.synced_folder_opts = {
+            owner: "_apt",
+            group: "vagrant"
+        }
+    end
+
+    # create the ci-test configuration
+    # config.vm.define "jenkins-ci-test" do |jenkins_ci_test_config|
+
+    #     jenkins_ci_test_config.vm.provider "virtualbox" do |v|
+    #         v.memory = 1024
+    #         v.cpus = numcpu
+    #     end
+
+    #     jenkins_ci_test_config.vm.box = "geerlingguy/ubuntu1604"
+    #     jenkins_ci_test_config.ssh.insert_key = false
+    #     # jenkins_ci_config.vm.synced_folder ".", "/vagrant", disabled: true
+    #     jenkins_ci_test_config.vm.hostname = "jenkins-ci"
+    #     jenkins_ci_test_config.vm.network :private_network, ip: "#{jenkins_ci_test_ip}"
+    # end
+  
+    # create the nodes configuration
+    # instances.each do |instance| 
+    #     config.vm.define "#{instance[:name]}" do |node_config|
+    #         node_config.vm.box = "ubuntu/xenial64"
+    #         node_config.vm.hostname = instance[:name]
+    #         node_config.vm.network :private_network, ip: "#{instance[:ip]}"
+    #     end
+    # end
+end 

@@ -1,0 +1,37 @@
+- name: Packages are present
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+  with_items:
+    - apt-transport-https
+    - ca-certificates
+
+- name: Docker apt-key present
+  apt_key:
+    id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+    url: "https://download.docker.com/linux/ubuntu/gpg"
+    state: present
+
+- name: Docker repository is added and cache is updated
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ debian_version }} {{ release }}"
+    update_cache: yes
+    state: present
+
+- name: Docker Engine is present
+  apt:
+    name: docker-ce
+    update_cache: yes
+    force: yes
+
+- name: User is added to the docker group
+  user:
+    name: "{{ user }}"
+    group: docker
+  register: user_result
+
+- name: Debian Docker service is restarted
+  service:
+    name: docker
+    state: restarted
+  when: user_result is changed

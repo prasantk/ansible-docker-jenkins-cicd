@@ -1,0 +1,3 @@
+debian_version: xenial
+release: stable
+user: vagrant

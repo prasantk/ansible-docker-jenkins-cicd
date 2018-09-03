@@ -1,0 +1,11 @@
+- hosts: jenkins
+  vars:
+    - project: jenkins
+    - container_volume: 
+      - /data/jenkins-master
+      - /data/jenkins-agent
+      - /data/sonarqube
+  roles:
+    - docker
+    - docker-compose
+    - containers

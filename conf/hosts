@@ -1,0 +1,13 @@
+;[local]
+;127.0.0.1
+
+[jenkins]
+jenkins-ci
+
+#[test]
+#web1 ansible_host=10.0.15.51 ansible_user=vagrant
+#web2 ansible_host=10.0.15.52 ansible_user=vagrant
+
+#[db_and_web_servers]
+#db_and_web_server1 ansible_host=10.0.15.51 ansible_user=vagrant
+#db_and_web_server2 ansible_host=10.0.15.52 ansible_user=vagrant

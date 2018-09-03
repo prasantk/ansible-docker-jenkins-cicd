@@ -1,0 +1,11 @@
+---
+- hosts: all
+  gather_facts: no
+
+  tasks:
+ 
+  - name: Add SSH public key to user remote
+    authorized_key:
+      user=vagrant
+      key="{{ lookup('file', "/home/vagrant/.ssh/jenkins_rsa.pub") }}"
+...

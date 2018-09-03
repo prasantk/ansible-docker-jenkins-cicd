@@ -1,0 +1,35 @@
+- name: Directory is present
+  file:
+    path: "/data/composes/{{ project }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0775
+    # recurse: yes
+
+- name: Volume is present
+  file:
+    path: "{{ item }}"
+    mode: "{{ container_volume_mode }}"
+    state: directory
+  with_items: "{{ container_volume }}"
+  when: container_volume is defined
+
+- name: Compose is present
+  copy:
+    src: "{{ project }}.yml"
+    dest: "/data/composes/{{ project }}/docker-compose.yml"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0775
+
+- name: Containers are pulled
+  command: docker-compose pull
+  args:
+    chdir: "/data/composes/{{ project }}"
+
+- name: Containers are running
+  command: docker-compose up -d
+  args:
+    chdir: "/data/composes/{{ project }}"
+  when: do_not_start_container is not defined
